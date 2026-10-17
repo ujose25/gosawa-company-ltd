@@ -1,27 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-const companies = [
-  {
-    name: "Technology & Digital",
-    description: "Technology, software and digital employment opportunities.",
-    image: "/image/Capturea.PNG",
-  },
-  {
-    name: "TVET & Technical Skills",
-    description: "Practical training, internship and technical opportunities.",
-    image: "/image/Capture b-Copy.PNG",
-  },
-  {
-    name: "Hospitality & Tourism",
-    description: "Hotel, tourism and hospitality opportunities.",
-    image: "/image/Capture b.PNG",
-  },
-  {
-    name: "Finance & Business",
-    description: "Business, finance and administration opportunities.",
-    image: "/image/Capture c.PNG",
-  },
-];
+import api from "../lib/api";
+import BrandMark from "./BrandMark";
+import { dashboardPath, getSessionUser } from "../lib/session";
 
 const services = [
   {
@@ -37,7 +18,7 @@ const services = [
   {
     icon: "📄",
     title: "CV & Applications",
-    text: "Upload your CV and apply for opportunities directly through GOSAWA.",
+    text: "Apply to live opportunities and follow your application status.",
   },
   {
     icon: "🔐",
@@ -47,6 +28,26 @@ const services = [
 ];
 
 export default function Home() {
+  const sessionUser = getSessionUser();
+  const [opportunities, setOpportunities] = useState([]);
+  const [opportunitiesError, setOpportunitiesError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    api.get("/seeker/opportunities")
+      .then(({ data }) => {
+        if (active) setOpportunities(data.opportunities);
+      })
+      .catch(() => {
+        if (active) setOpportunitiesError("Could not load opportunities right now.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
 
@@ -57,13 +58,7 @@ export default function Home() {
 
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-3">
-
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white font-black text-2xl shadow-lg">
-             <img
-                src="/image/project.jpg"
-               
-              />
-            </div>
+            <BrandMark size="sm" />
 
             <div>
               <h1 className="font-black text-lg text-slate-900">
@@ -119,21 +114,29 @@ export default function Home() {
 
           {/* AUTH BUTTONS */}
           <div className="flex items-center gap-3">
-
-            <Link
-              to="/login"
-              className="hidden sm:block px-5 py-2.5 rounded-xl font-bold text-blue-600 border border-blue-200 hover:bg-blue-50 transition"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/register"
-              className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold shadow-md hover:bg-blue-700 transition"
-            >
-              Register
-            </Link>
-
+            {sessionUser ? (
+              <Link
+                to={dashboardPath(sessionUser.role)}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold shadow-md hover:bg-blue-700 transition"
+              >
+                Open dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden sm:block px-5 py-2.5 rounded-xl font-bold text-blue-600 border border-blue-200 hover:bg-blue-50 transition"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold shadow-md hover:bg-blue-700 transition"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
 
         </div>
@@ -179,21 +182,18 @@ export default function Home() {
 
             {/* BUTTONS */}
             <div className="flex flex-wrap gap-4 mt-8">
-
               <Link
                 to="/register"
-                className="px-7 py-4 rounded-xl bg-blue-500 text-white font-bold shadow-xl hover:bg-green-700 hover:-translate-y-0.5 transition"
+                className="px-7 py-4 rounded-xl bg-blue-600 text-white font-bold shadow-xl hover:bg-blue-700 hover:-translate-y-0.5 transition"
               >
-                Create Account →
+                I am a student
               </Link>
-
-              <a
-                href="#companies"
+              <Link
+                to="/employer-register"
                 className="px-7 py-4 rounded-xl bg-white text-blue-600 font-bold border border-blue-200 hover:bg-blue-50 transition"
               >
-                Explore Opportunities
-              </a>
-
+                I am an employer
+              </Link>
             </div>
 
             {/* TRUST */}
@@ -238,30 +238,16 @@ export default function Home() {
 
             <div className="absolute -bottom-6 -left-6 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40" />
 
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
-
-              <img
-                src="/image/project.jpg"
-                alt="GOSAWA workplace"
-                className="w-full h-[520px] object-cover"
-              />
-
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent p-8 pt-28">
-
-                <p className="text-cyan-300 font-bold">
-                  GOSAWA COMPANY LTD
-                </p>
-
-                <h3 className="text-2xl font-bold text-white mt-2">
-                  Connecting skills with opportunities
-                </h3>
-
-                <p className="text-slate-200 mt-2">
-                  Rwanda · TVET · Employment · Internship
-                </p>
-
-              </div>
-
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white bg-slate-900 p-8 min-h-[420px] flex flex-col justify-end">
+              <p className="text-cyan-300 font-bold">
+                Three accounts, one placement system
+              </p>
+              <h3 className="text-2xl font-bold text-white mt-2">
+                Student · Employer · GOSAWA Admin
+              </h3>
+              <p className="text-slate-200 mt-2">
+                Students apply, employers review, GOSAWA confirms placements.
+              </p>
             </div>
 
           </div>
@@ -328,6 +314,51 @@ export default function Home() {
 
       </section>
 
+      <section className="py-20 bg-white border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto">
+            <p className="text-blue-600 font-black uppercase tracking-widest text-sm">
+              Three roles
+            </p>
+            <h2 className="text-4xl font-black text-slate-900 mt-3">
+              How the three accounts work together
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mt-12">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
+              <p className="text-sm font-black uppercase tracking-widest text-blue-600">1. Student</p>
+              <h3 className="mt-3 text-2xl font-black">Register and apply</h3>
+              <p className="mt-3 text-slate-600">
+                Create a student account, browse approved opportunities, and send applications.
+              </p>
+              <Link to="/register" className="mt-5 inline-block font-bold text-blue-700">
+                Create student account →
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
+              <p className="text-sm font-black uppercase tracking-widest text-blue-600">2. Employer</p>
+              <h3 className="mt-3 text-2xl font-black">Publish and shortlist</h3>
+              <p className="mt-3 text-slate-600">
+                Register your company, wait for GOSAWA approval, post roles, and review applicants.
+              </p>
+              <Link to="/employer-register" className="mt-5 inline-block font-bold text-blue-700">
+                Register company →
+              </Link>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
+              <p className="text-sm font-black uppercase tracking-widest text-blue-600">3. GOSAWA admin</p>
+              <h3 className="mt-3 text-2xl font-black">Approve and place</h3>
+              <p className="mt-3 text-slate-600">
+                Approve companies, review applications, and confirm student placements.
+              </p>
+              <Link to="/login" className="mt-5 inline-block font-bold text-blue-700">
+                Admin login →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
 
       {/* COMPANIES */}
       <section
@@ -366,42 +397,41 @@ export default function Home() {
           </div>
 
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+          {opportunitiesError && (
+            <p role="alert" className="mt-6 text-red-700">{opportunitiesError}</p>
+          )}
 
-            {companies.map((company, index) => (
+          {!opportunitiesError && opportunities.length === 0 && (
+            <p className="mt-6 text-slate-500">No open opportunities are available right now.</p>
+          )}
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+            {opportunities.map((opportunity) => (
 
               <div
-                key={index}
+                key={opportunity.id}
                 className="group bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition"
               >
 
-                <div className="relative h-52 overflow-hidden">
-
-                  <img
-                    src={company.image}
-                    alt={company.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                  />
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
-
-                  <h3 className="absolute bottom-4 left-5 right-5 text-white font-black text-xl">
-                    {company.name}
-                  </h3>
-
-                </div>
-
                 <div className="p-5">
-
-                  <p className="text-slate-500 text-sm leading-6">
-                    {company.description}
+                  <p className="text-sm font-semibold text-blue-700">
+                    {opportunity.company_name}
+                  </p>
+                  <h3 className="mt-2 text-xl font-bold text-slate-900">
+                    {opportunity.title}
+                  </h3>
+                  <p className="mt-3 text-sm text-slate-600">
+                    {opportunity.description || "Details available after you create an account."}
+                  </p>
+                  <p className="mt-3 text-sm text-slate-500">
+                    {opportunity.type} · {opportunity.location || "Location not specified"}
                   </p>
 
                   <Link
-                    to="/register"
+                    to="/login"
                     className="inline-block mt-4 text-blue-600 font-bold text-sm"
                   >
-                    View opportunities →
+                    Sign in to apply →
                   </Link>
 
                 </div>
@@ -441,10 +471,10 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-6 mt-12">
 
             {[
-              ["01", "Create account", "Register and provide your TVET or professional information."],
-              ["02", "Find opportunity", "Explore jobs, internships and work-learning opportunities."],
-              ["03", "Apply", "Upload your CV and submit your application securely."],
-              ["04", "Get connected", "Follow your application and placement status."],
+              ["01", "Student registers", "The student creates an account with TVET details and applies to live roles."],
+              ["02", "Employer is approved", "GOSAWA reviews the company, then the employer can publish opportunities."],
+              ["03", "Employer reviews", "The company shortlists or rejects applicants and can message the admin."],
+              ["04", "Admin confirms", "GOSAWA updates the application. Accepted students see their placement."],
             ].map((step) => (
 
               <div

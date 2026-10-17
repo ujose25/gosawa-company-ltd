@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Ntibyashobotse kubona ibigo.",
+      message: "Could not load companies.",
     });
   }
 });

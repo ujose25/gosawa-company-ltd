@@ -3,41 +3,61 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 const db = require("../db");
+const authLimiter = require("../middleware/authLimiter");
+const { requireAuth } = require("../middleware/auth");
+const { normalizeEmail, isStrongPassword } = require("../utils/authValidation");
 
 const router = express.Router();
-
-// Verification codes zibikwa by'agateganyo muri memory.
-const verificationCodes = new Map();
-const verifiedEmails = new Set();
-
-const normalizeEmail = (email) =>
-  String(email || "").trim().toLowerCase();
-
-const isStrongPassword = (password) => {
-  return (
-    typeof password === "string" &&
-    password.length >= 10 &&
-    /[a-z]/.test(password) &&
-    /[A-Z]/.test(password) &&
-    /\d/.test(password) &&
-    /[^A-Za-z0-9]/.test(password)
-  );
+const accountTables = {
+  seeker: "job_seekers",
+  employer: "employers",
+  admin: "admins",
 };
+function publicAccount(user, role) {
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    role,
+  };
+
+  if (role === "seeker") safeUser.full_name = user.full_name;
+  if (role === "employer") {
+    safeUser.company_name = user.company_name;
+    safeUser.status = user.status;
+  }
+
+  return safeUser;
+}
+
+const sessionCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production" || process.env.COOKIE_SAME_SITE === "none",
+  sameSite: process.env.COOKIE_SAME_SITE || "lax",
+  path: "/",
+  maxAge: 24 * 60 * 60 * 1000,
+});
 
 const createTransporter = () => {
   const emailUser = process.env.EMAIL_USER;
   const emailPass = process.env.EMAIL_PASS;
 
   if (!emailUser || !emailPass) {
-    throw new Error(
-      "EMAIL_USER cyangwa EMAIL_PASS ntibyuzuye muri .env"
-    );
+    throw new Error("EMAIL_USER and EMAIL_PASS must be set in .env.");
   }
 
+  const port = Number(process.env.SMTP_PORT || 587);
+  const transport = process.env.SMTP_HOST
+    ? {
+        host: process.env.SMTP_HOST,
+        port,
+        secure: process.env.SMTP_SECURE === "true" || port === 465,
+      }
+    : { service: "gmail" };
+
   return nodemailer.createTransport({
-    service: "gmail",
+    ...transport,
     auth: {
       user: emailUser.trim(),
       pass: emailPass.replace(/\s/g, ""),
@@ -45,122 +65,8 @@ const createTransporter = () => {
   });
 };
 
-// 1. Kohereza verification code kuri email y'umunyeshuri
-router.post("/send-verification", async (req, res) => {
-  try {
-    const email = normalizeEmail(req.body.email);
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: "Andika email nyayo.",
-      });
-    }
-
-    // Code y'imibare 6
-    const code = crypto.randomInt(100000, 1000000).toString();
-
-    const transporter = createTransporter();
-
-    await transporter.sendMail({
-      from: `"GOSAWA COMPANY LTD" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "GOSAWA - Email Verification Code",
-      text: `Verification code yawe ni ${code}. Izarangira mu minota 10.`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto">
-          <h2 style="color:#087443">GOSAWA COMPANY LTD</h2>
-          <p>Muraho! Koresha iyi code kugira ngo wemeze email yawe:</p>
-          <h1 style="letter-spacing:8px;color:#087443">${code}</h1>
-          <p>Iyi code izarangira mu minota 10.</p>
-          <p>Niba utasabye kwiyandikisha, ushobora kwirengagiza ubu butumwa.</p>
-        </div>
-      `,
-    });
-
-    verificationCodes.set(email, {
-      code,
-      expiresAt: Date.now() + 10 * 60 * 1000,
-      attempts: 0,
-    });
-
-    verifiedEmails.delete(email);
-
-    return res.json({
-      success: true,
-      message: "Verification code yoherejwe kuri email yawe.",
-    });
-  } catch (error) {
-    // Reba impamvu nyayo muri terminal ya backend.
-    console.error("GOSAWA email error:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message:
-        "Email ntiyoherejwe. Reba App Password na EMAIL_USER muri .env.",
-    });
-  }
-});
-
-// 2. Kwemeza verification code
-router.post("/verify-code", (req, res) => {
-  const email = normalizeEmail(req.body.email);
-  const code = String(req.body.code || "").trim();
-
-  if (!email || !code) {
-    return res.status(400).json({
-      success: false,
-      message: "Shyiramo email na verification code.",
-    });
-  }
-
-  const saved = verificationCodes.get(email);
-
-  if (!saved) {
-    return res.status(400).json({
-      success: false,
-      message: "Banza usabe verification code.",
-    });
-  }
-
-  if (Date.now() > saved.expiresAt) {
-    verificationCodes.delete(email);
-
-    return res.status(400).json({
-      success: false,
-      message: "Verification code yarangiye. Ongera uyisabe.",
-    });
-  }
-
-  if (saved.attempts >= 5) {
-    verificationCodes.delete(email);
-
-    return res.status(429).json({
-      success: false,
-      message: "Warengeje inshuro zo kugerageza. Saba code nshya.",
-    });
-  }
-
-  saved.attempts += 1;
-
-  if (saved.code !== code) {
-    return res.status(400).json({
-      success: false,
-      message: "Verification code si yo.",
-    });
-  }
-
-  verificationCodes.delete(email);
-  verifiedEmails.add(email);
-
-  return res.json({
-    success: true,
-    message: "Email yawe yemejwe neza.",
-  });
-});
-
-// 3. Kwandikisha umunyeshuri
-router.post("/register", async (req, res) => {
+// Register a student account.
+router.post("/register", authLimiter, async (req, res) => {
   try {
     const {
       nationalId,
@@ -168,13 +74,13 @@ router.post("/register", async (req, res) => {
       email: rawEmail,
       telephone,
       location,
-      fatherName,
-      motherName,
+      fatherName = "",
+      motherName = "",
       province,
       district,
       sector,
       cell,
-      village,
+      village = "",
       tvetSchool,
       qualification,
       opportunityInterest,
@@ -183,10 +89,10 @@ router.post("/register", async (req, res) => {
 
     const email = normalizeEmail(rawEmail);
 
-    if (!verifiedEmails.has(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({
         success: false,
-        message: "Banza wemeze email yawe.",
+        message: "Enter a valid email address.",
       });
     }
 
@@ -196,13 +102,10 @@ router.post("/register", async (req, res) => {
       !email ||
       !telephone ||
       !location ||
-      !fatherName ||
-      !motherName ||
       !province ||
       !district ||
       !sector ||
       !cell ||
-      !village ||
       !tvetSchool ||
       !qualification ||
       !opportunityInterest ||
@@ -210,7 +113,7 @@ router.post("/register", async (req, res) => {
     ) {
       return res.status(400).json({
         success: false,
-        message: "Uzuza amakuru yose asabwa.",
+        message: "Complete all required fields.",
       });
     }
 
@@ -218,7 +121,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({
         success: false,
         message:
-          "Password igomba kugira inyuguti nto, inyuguti nkuru, umubare, ikimenyetso kandi ikagira nibura inyuguti 10.",
+          "Password must be at least 10 characters and include uppercase, lowercase, a number, and a symbol.",
       });
     }
 
@@ -232,7 +135,7 @@ router.post("/register", async (req, res) => {
     if (existing.length > 0) {
       return res.status(409).json({
         success: false,
-        message: "Iyi email cyangwa National ID isanzwe yanditse.",
+        message: "This email or National ID is already registered.",
       });
     }
 
@@ -265,24 +168,173 @@ router.post("/register", async (req, res) => {
       ]
     );
 
-    verifiedEmails.delete(email);
-
     return res.status(201).json({
       success: true,
-      message: "Account yawe yakozwe neza. Ushobora kwinjira muri GOSAWA.",
+      message: "Your account was created successfully. You can now log in.",
     });
   } catch (error) {
     console.error("GOSAWA registration error:", error.message);
 
     return res.status(500).json({
       success: false,
-      message: "Kwiyandikisha byanze. Reba amakuru ya database.",
+      message: "Registration failed. Check the server logs for details.",
     });
   }
 });
 
-// 4. Kwinjira muri GOSAWA
-router.post("/login", async (req, res) => {
+router.post("/forgot-password", authLimiter, async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const role = req.body.role;
+  const table = accountTables[role];
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !table) {
+    return res.status(400).json({
+      success: false,
+      message: "Enter a valid email address and account type.",
+    });
+  }
+
+  try {
+    const [accounts] = await db.query(
+      `SELECT id FROM ${table} WHERE email = ? LIMIT 1`,
+      [email]
+    );
+
+    if (accounts.length) {
+      const accountId = accounts[0].id;
+      const token = crypto.randomBytes(32).toString("hex");
+      const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
+      await db.query(
+        "DELETE FROM password_resets WHERE account_type = ? AND account_id = ?",
+        [role, accountId]
+      );
+      await db.query(
+        `INSERT INTO password_resets (account_type, account_id, token_hash, expires_at)
+         VALUES (?, ?, ?, DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL 15 MINUTE))`,
+        [role, accountId, tokenHash]
+      );
+
+      const frontendUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || "http://localhost:5173")
+        .split(",")[0]
+        .trim()
+        .replace(/\/$/, "");
+      const resetUrl = `${frontendUrl}/reset-password?role=${encodeURIComponent(role)}&token=${token}`;
+      try {
+        const transporter = createTransporter();
+
+        await transporter.sendMail({
+          from: `"GOSAWA COMPANY LTD" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: "Reset your GOSAWA password",
+          text: `Use this one-time link to reset your password. It expires in 15 minutes: ${resetUrl}`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto">
+              <h2 style="color:#087443">GOSAWA COMPANY LTD</h2>
+              <p>Use the link below to reset your password. It expires in 15 minutes and can only be used once.</p>
+              <p><a href="${resetUrl}">Reset password</a></p>
+              <p>If you did not request this, ignore this email.</p>
+            </div>
+          `,
+        });
+      } catch (mailError) {
+        await db.query("DELETE FROM password_resets WHERE token_hash = ?", [tokenHash]);
+        console.error("Password reset email error:", mailError.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: "If an account matches those details, a password reset link will be sent.",
+    });
+  } catch (error) {
+    console.error("Password reset request error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Could not process the password reset request.",
+    });
+  }
+});
+
+router.post("/reset-password", authLimiter, async (req, res) => {
+  const { token, password, role } = req.body;
+  const table = accountTables[role];
+
+  if (!table || !/^[a-f0-9]{64}$/i.test(String(token || ""))) {
+    return res.status(400).json({
+      success: false,
+      message: "This password reset link is invalid or expired.",
+    });
+  }
+
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({
+      success: false,
+      message: "Password must be at least 10 characters and include uppercase, lowercase, a number, and a symbol.",
+    });
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+    const [resets] = await connection.query(
+      `SELECT id, account_id FROM password_resets
+       WHERE account_type = ? AND token_hash = ?
+       AND expires_at > CURRENT_TIMESTAMP()
+       LIMIT 1 FOR UPDATE`,
+      [role, tokenHash]
+    );
+
+    if (!resets.length) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "This password reset link is invalid or expired.",
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const [updated] = await connection.query(
+      `UPDATE ${table} SET password_hash = ? WHERE id = ?`,
+      [passwordHash, resets[0].account_id]
+    );
+
+    if (!updated.affectedRows) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: "This password reset link is invalid or expired.",
+      });
+    }
+
+    await connection.query(
+      "DELETE FROM password_resets WHERE account_type = ? AND account_id = ?",
+      [role, resets[0].account_id]
+    );
+    await connection.commit();
+
+    const { maxAge, ...clearOptions } = sessionCookieOptions();
+    res.clearCookie("gosawa_session", clearOptions);
+    return res.json({
+      success: true,
+      message: "Your password has been reset. You can now log in.",
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error("Password reset error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Could not reset your password.",
+    });
+  } finally {
+    connection.release();
+  }
+});
+
+// Log in to GOSAWA.
+router.post("/login", authLimiter, async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
     const { password, role = "seeker" } = req.body;
@@ -290,22 +342,16 @@ router.post("/login", async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Shyiramo email na password.",
+        message: "Enter your email and password.",
       });
     }
 
-    const allowedTables = {
-      seeker: "job_seekers",
-      employer: "employers",
-      admin: "admins",
-    };
-
-    const table = allowedTables[role];
+    const table = accountTables[role];
 
     if (!table) {
       return res.status(400).json({
         success: false,
-        message: "Role ntiyemewe.",
+        message: "Invalid account type.",
       });
     }
 
@@ -317,32 +363,37 @@ router.post("/login", async (req, res) => {
     if (users.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Email cyangwa password si byo.",
+        message: "Email or password is incorrect.",
       });
     }
 
     const user = users[0];
-
     const passwordHash = user.password_hash;
+    const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(passwordHash || "");
+    const passwordMatches = isBcryptHash
+      ? await bcrypt.compare(password, passwordHash)
+      : password === passwordHash;
 
-    if (
-      !passwordHash ||
-      !(await bcrypt.compare(password, passwordHash))
-    ) {
+    if (!passwordHash || !passwordMatches) {
       return res.status(401).json({
         success: false,
-        message: "Email cyangwa password si byo.",
+        message: "Email or password is incorrect.",
       });
     }
 
-    if (
-      role === "employer" &&
-      user.status &&
-      user.status !== "approved"
-    ) {
-      return res.status(403).json({
+    if (!isBcryptHash) {
+      const upgradedHash = await bcrypt.hash(password, 12);
+      await db.query(
+        `UPDATE ${table} SET password_hash = ? WHERE id = ?`,
+        [upgradedHash, user.id]
+      );
+      user.password_hash = upgradedHash;
+    }
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({
         success: false,
-        message: "Konti ya company iracyategereje kwemezwa na admin.",
+        message: "Authentication is not configured on the server.",
       });
     }
 
@@ -356,18 +407,15 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Ntitwohereza password hash cyangwa amakuru y'ibanga.
-    const safeUser = { ...user };
-    delete safeUser.password_hash;
-    delete safeUser.password;
+    const safeUser = publicAccount(user, role);
+
+    res.cookie("gosawa_session", token, sessionCookieOptions());
 
     return res.json({
       success: true,
-      message: "Winjiye muri GOSAWA neza.",
-      token,
+      message: "Login successful.",
       user: {
         ...safeUser,
-        role,
       },
     });
   } catch (error) {
@@ -375,9 +423,52 @@ router.post("/login", async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: "Kwinjira byanze. Ongera ugerageze.",
+      message: "Login failed. Check the server logs for details.",
     });
   }
+});
+
+router.get("/me", requireAuth, async (req, res) => {
+  const role = req.auth.role;
+  const table = accountTables[role];
+
+  if (!table) {
+    return res.status(401).json({
+      success: false,
+      message: "Please log in first.",
+    });
+  }
+
+  try {
+    const [users] = await db.query(
+      `SELECT * FROM ${table} WHERE id = ? LIMIT 1`,
+      [req.auth.id]
+    );
+
+    if (!users.length) {
+      return res.status(401).json({
+        success: false,
+        message: "Please log in first.",
+      });
+    }
+
+    return res.json({
+      success: true,
+      user: publicAccount(users[0], role),
+    });
+  } catch (error) {
+    console.error("Session lookup error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Could not load your session.",
+    });
+  }
+});
+
+router.post("/logout", (req, res) => {
+  const { maxAge, ...clearOptions } = sessionCookieOptions();
+  res.clearCookie("gosawa_session", clearOptions);
+  return res.json({ success: true, message: "Logged out successfully." });
 });
 
 module.exports = router;

@@ -2,11 +2,11 @@
 const express = require("express");
 const db = require("../db");
 const { requireAuth, allowRoles } = require("../middleware/auth");
+const { withPlacement } = require("../utils/placement");
 
 const router = express.Router();
-router.use(requireAuth, allowRoles("student", "seeker"));
 
-router.get("/me", async (req, res) => {
+router.get("/me", requireAuth, allowRoles("student", "seeker"), async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT id, national_id, full_name, email, telephone,
@@ -54,19 +54,23 @@ router.get("/opportunities", async (req, res) => {
   }
 });
 
+router.use(requireAuth, allowRoles("student", "seeker"));
+
 router.get("/applications", async (req, res) => {
   try {
     const [rows] = await db.query(
       `SELECT a.id, a.status, a.cover_letter, a.created_at,
-       o.title, o.type, o.location
+       o.title, o.type, o.location, e.company_name,
+       e.location AS company_location, e.email AS company_email
        FROM applications a
        JOIN opportunities o ON o.id = a.opportunity_id
+       JOIN employers e ON e.id = o.employer_id
        WHERE a.student_id = ?
        ORDER BY a.created_at DESC`,
       [req.auth.id]
     );
 
-    res.json({ success: true, applications: rows });
+    res.json({ success: true, applications: rows.map(withPlacement) });
   } catch (error) {
     console.error(error);
     res.status(500).json({
