@@ -239,13 +239,19 @@ export default function Home() {
             <div className="absolute -bottom-6 -left-6 w-40 h-40 bg-blue-300 rounded-full blur-3xl opacity-40" />
 
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-8 border-white bg-slate-900 p-8 min-h-[420px] flex flex-col justify-end">
-              <p className="text-cyan-300 font-bold">
+              <img
+                src="/image/Capture%20c.PNG"
+                alt="Modern campus building"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
+              <p className="relative text-cyan-300 font-bold">
                 Three accounts, one placement system
               </p>
-              <h3 className="text-2xl font-bold text-white mt-2">
+              <h3 className="relative text-2xl font-bold text-white mt-2">
                 Student · Employer · GOSAWA Admin
               </h3>
-              <p className="text-slate-200 mt-2">
+              <p className="relative text-slate-200 mt-2">
                 Students apply, employers review, GOSAWA confirms placements.
               </p>
             </div>
@@ -325,35 +331,56 @@ export default function Home() {
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
-              <p className="text-sm font-black uppercase tracking-widest text-blue-600">1. Student</p>
-              <h3 className="mt-3 text-2xl font-black">Register and apply</h3>
-              <p className="mt-3 text-slate-600">
-                Create a student account, browse approved opportunities, and send applications.
-              </p>
-              <Link to="/register" className="mt-5 inline-block font-bold text-blue-700">
-                Create student account →
-              </Link>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <img
+                src="/image/Capture%20b.PNG"
+                alt="School campus"
+                className="h-48 w-full object-cover"
+              />
+              <div className="p-7">
+                <p className="text-sm font-black uppercase tracking-widest text-blue-600">1. Student</p>
+                <h3 className="mt-3 text-2xl font-black">Register and apply</h3>
+                <p className="mt-3 text-slate-600">
+                  Create a student account, browse approved opportunities, and send applications.
+                </p>
+                <Link to="/register" className="mt-5 inline-block font-bold text-blue-700">
+                  Create student account →
+                </Link>
+              </div>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
-              <p className="text-sm font-black uppercase tracking-widest text-blue-600">2. Employer</p>
-              <h3 className="mt-3 text-2xl font-black">Publish and shortlist</h3>
-              <p className="mt-3 text-slate-600">
-                Register your company, wait for GOSAWA approval, post roles, and review applicants.
-              </p>
-              <Link to="/employer-register" className="mt-5 inline-block font-bold text-blue-700">
-                Register company →
-              </Link>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <img
+                src="/image/Capturea.PNG"
+                alt="School building with student learning spaces"
+                className="h-48 w-full object-cover"
+              />
+              <div className="p-7">
+                <p className="text-sm font-black uppercase tracking-widest text-blue-600">2. Employer</p>
+                <h3 className="mt-3 text-2xl font-black">Publish and shortlist</h3>
+                <p className="mt-3 text-slate-600">
+                  Register your company, wait for GOSAWA approval, post roles, and review applicants.
+                </p>
+                <Link to="/employer-register" className="mt-5 inline-block font-bold text-blue-700">
+                  Register company →
+                </Link>
+              </div>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-7">
-              <p className="text-sm font-black uppercase tracking-widest text-blue-600">3. GOSAWA admin</p>
-              <h3 className="mt-3 text-2xl font-black">Approve and place</h3>
-              <p className="mt-3 text-slate-600">
-                Approve companies, review applications, and confirm student placements.
-              </p>
-              <Link to="/login" className="mt-5 inline-block font-bold text-blue-700">
-                Admin login →
-              </Link>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+              <img
+                src="/image/Capture%20d.PNG"
+                alt="Modern international business district"
+                className="h-48 w-full object-cover"
+              />
+              <div className="p-7">
+                <p className="text-sm font-black uppercase tracking-widest text-blue-600">3. GOSAWA admin</p>
+                <h3 className="mt-3 text-2xl font-black">Approve and place</h3>
+                <p className="mt-3 text-slate-600">
+                  Approve companies, review applications, and confirm student placements.
+                </p>
+                <Link to="/login" className="mt-5 inline-block font-bold text-blue-700">
+                  Admin login →
+                </Link>
+              </div>
             </div>
           </div>
         </div>

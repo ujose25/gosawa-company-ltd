@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Verify GOSAWA frontend",
+			"type": "shell",
+			"command": "node",
+			"args": [
+				"frontend-project\\verifyFrontend.cjs"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

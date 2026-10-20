@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 
 import Home from "./Home.jsx";
 import Register from "./Register.jsx";
@@ -42,6 +42,18 @@ function AppRoute() {
           <RequireAuth roles={["admin"]}>
             <AdminDashboard />
           </RequireAuth>
+        )}
+      />
+      <Route
+        path="*"
+        element={(
+          <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
+            <h1 className="text-3xl font-black text-slate-900">Page not found</h1>
+            <p className="text-slate-600">The page you requested does not exist.</p>
+            <Link to="/" className="font-bold text-blue-700 hover:underline">
+              Return to home
+            </Link>
+          </main>
         )}
       />
     </Routes>

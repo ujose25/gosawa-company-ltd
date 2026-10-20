@@ -6,11 +6,10 @@ export default function BrandMark({ size = "md" }) {
   };
 
   return (
-    <div
-      className={`${sizes[size] || sizes.md} flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 font-black text-white shadow-lg`}
-      aria-hidden="true"
-    >
-      G
-    </div>
+    <img
+      src="/image/project.jpg"
+      alt="GOSAWA globe logo"
+      className={`${sizes[size] || sizes.md} rounded-xl object-cover object-top shadow-lg`}
+    />
   );
 }

@@ -67,6 +67,58 @@ router.get("/employers", async (req, res) => {
   }
 });
 
+router.get("/employer-messages", async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT m.id AS message_id, m.message, m.created_at,
+       e.company_name, e.email AS employer_email,
+       a.id AS application_id, s.full_name, s.email,
+       o.title AS opportunity_title
+       FROM employer_admin_messages m
+       JOIN employers e ON e.id = m.employer_id
+       JOIN employer_admin_message_recipients r ON r.message_id = m.id
+       JOIN applications a ON a.id = r.application_id
+       JOIN job_seekers s ON s.id = a.student_id
+       JOIN opportunities o ON o.id = a.opportunity_id
+       ORDER BY m.created_at DESC, m.id DESC, a.id ASC`
+    );
+
+    const messagesById = new Map();
+    for (const row of rows) {
+      let message = messagesById.get(row.message_id);
+      if (!message) {
+        message = {
+          id: row.message_id,
+          message: row.message,
+          created_at: row.created_at,
+          company_name: row.company_name,
+          employer_email: row.employer_email,
+          students: [],
+        };
+        messagesById.set(row.message_id, message);
+      }
+
+      message.students.push({
+        applicationId: row.application_id,
+        fullName: row.full_name,
+        email: row.email,
+        opportunityTitle: row.opportunity_title,
+      });
+    }
+
+    return res.json({
+      success: true,
+      messages: [...messagesById.values()],
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Could not load employer messages.",
+    });
+  }
+});
+
 router.patch("/employers/:id/status", async (req, res) => {
   const { status } = req.body;
 
@@ -117,7 +169,8 @@ router.get("/applications", async (req, res) => {
   try {
     const [applications] = await db.query(
       `SELECT a.*, s.full_name, s.email,
-       o.title, e.company_name
+       s.qualification, s.tvet_school, s.location AS student_location,
+       o.title, o.location, e.company_name
        FROM applications a
        JOIN job_seekers s ON s.id = a.student_id
        JOIN opportunities o ON o.id = a.opportunity_id

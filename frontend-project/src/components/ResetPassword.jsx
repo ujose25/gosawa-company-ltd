@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../lib/api";
+import { isStrongPassword, PASSWORD_HINT } from "../lib/password";
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,11 @@ export default function ResetPassword() {
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    if (!isStrongPassword(password)) {
+      setError(PASSWORD_HINT);
       return;
     }
 
@@ -42,7 +48,7 @@ export default function ResetPassword() {
       <form onSubmit={resetPassword} className="w-full max-w-md space-y-4 rounded-xl bg-white p-7 shadow-lg">
         <h1 className="text-2xl font-bold text-slate-900">Create a new password</h1>
         <p className="text-sm text-slate-600">
-          Use at least 10 characters, including uppercase and lowercase letters, a number, and a symbol.
+          {PASSWORD_HINT}
         </p>
 
         {message && <p role="status" className="rounded-lg bg-green-50 p-3 text-green-800">{message}</p>}
