@@ -421,15 +421,15 @@ GOSAWA COMPANY LTD – Find Opportunities. Learn, Work, and Build Your Future Wo
 
             </div>
 
-            <Link
+           
+
+          </div>
+ <Link
               to="/register"
               className="font-bold text-blue-600 hover:text-blue-800"
             >
               Create your account →
             </Link>
-
-          </div>
-
 
           {opportunitiesError && (
             <p role="alert" className="mt-6 text-red-700">{opportunitiesError}</p>
