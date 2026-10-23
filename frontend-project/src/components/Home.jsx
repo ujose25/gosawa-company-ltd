@@ -174,9 +174,17 @@ export default function Home() {
 
             <p className="mt-6 text-lg lg:text-xl text-slate-600 leading-8 max-w-xl">
 
-              GOSAWA COMPANY LTD connects TVET students and job seekers
-              with employers, internships, training and employment
-              opportunities across Rwanda.
+         GOSAWA COMPANY LTD is a platform designed to help TVET students, graduates, and job seekers in Rwanda and abroad find employment opportunities, internships, training programs, and other career development opportunities.
+
+The platform connects students, graduates, and job seekers with companies and employers in Rwanda and other countries who are looking for skilled, qualified, and motivated candidates.
+
+Our mission is to bridge the gap between vocational education and the labor market, both in Rwanda and internationally. We aim to help young people gain practical work experience, improve their skills, access professional training, and build successful careers.
+
+GOSAWA COMPANY LTD will also help employers in other countries find skilled and talented Rwandan workers who meet their job requirements. Through these connections, we aim to expand access to international employment opportunities and promote career growth for Rwandan youth.
+
+We are committed to helping young people access legitimate employment opportunities abroad while encouraging compliance with applicable labor laws, recruitment regulations, and immigration requirements.
+
+GOSAWA COMPANY LTD – Find Opportunities Today. Build Your Future in Rwanda and Around the World!
 
             </p>
 
@@ -246,13 +254,13 @@ export default function Home() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
               <p className="relative text-cyan-300 font-bold">
-                Three accounts, one placement system
+                value proposition
               </p>
               <h3 className="relative text-2xl font-bold text-white mt-2">
-                Student · Employer · GOSAWA Admin
+             TO connect job seekes with the right employment opportunities through atrusted,accessible and technology-driven platform.
               </h3>
               <p className="relative text-slate-200 mt-2">
-                Students apply, employers review, GOSAWA confirms placements.
+              TO become aleading digital employment platform that transforms how people find job and how organizations find the right talent.
               </p>
             </div>
 
@@ -604,7 +612,7 @@ export default function Home() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  Burera, Northern Province, Rwanda
+                  Musanze, Northern Province, Rwanda
                 </p>
               </div>
 
@@ -614,7 +622,7 @@ export default function Home() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  128 Burera
+                  128 Musanze
                 </p>
               </div>
 
