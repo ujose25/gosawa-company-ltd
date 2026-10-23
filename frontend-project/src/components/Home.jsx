@@ -410,8 +410,13 @@ export default function Home() {
               </h2>
 
               <p className="text-slate-500 mt-3">
-                Discover sectors where GOSAWA students and job seekers
-                can find opportunities.
+              GOSAWA COMPANY LTD connects TVET students, graduates, university graduates, 
+                and job seekers with employment, internships, training, scholarships,
+                and study opportunities in Rwanda and abroad. It helps employers find qualified workers
+                while enabling people without university degrees to gain practical skills, continue their
+                education, and access work-and-study opportunities. Our mission is to create opportunities for 
+                everyone to learn, work, and build a successful future
+GOSAWA COMPANY LTD – Find Opportunities. Learn, Work, and Build Your Future Worldwide
               </p>
 
             </div>
