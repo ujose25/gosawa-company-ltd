@@ -174,17 +174,11 @@ export default function Home() {
 
             <p className="mt-6 text-lg lg:text-xl text-slate-600 leading-8 max-w-xl">
 
-         GOSAWA COMPANY LTD is a platform designed to help TVET students, graduates, and job seekers in Rwanda and abroad find employment opportunities, internships, training programs, and other career development opportunities.
-
-The platform connects students, graduates, and job seekers with companies and employers in Rwanda and other countries who are looking for skilled, qualified, and motivated candidates.
-
-Our mission is to bridge the gap between vocational education and the labor market, both in Rwanda and internationally. We aim to help young people gain practical work experience, improve their skills, access professional training, and build successful careers.
-
-GOSAWA COMPANY LTD will also help employers in other countries find skilled and talented Rwandan workers who meet their job requirements. Through these connections, we aim to expand access to international employment opportunities and promote career growth for Rwandan youth.
-
-We are committed to helping young people access legitimate employment opportunities abroad while encouraging compliance with applicable labor laws, recruitment regulations, and immigration requirements.
-
-GOSAWA COMPANY LTD – Find Opportunities Today. Build Your Future in Rwanda and Around the World!
+      GOSAWA COMPANY LTD is a platform that connects TVET students, graduates, 
+              and job seekers in Rwanda and abroad with employment opportunities, internships,
+              and training programs. Our mission is to help young people develop their skills, gain
+              practical experience, and build successful careers by connecting them with employers in Rwanda and 
+              internationally. We promote safe, legal, and reliable employment opportunities to help Rwandan youth build a brighter future.
 
             </p>
 
