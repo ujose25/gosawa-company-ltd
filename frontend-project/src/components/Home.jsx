@@ -284,8 +284,9 @@ export default function Home() {
             </h2>
 
             <p className="text-slate-500 mt-5 text-lg">
-              GOSAWA creates a simple connection between students,
-              job seekers and employers.
+             GOSAWA connects TVET students, graduates, job seekers, and
+              employers to help people find jobs, internships, training, and 
+              opportunities to build a better future.
             </p>
 
           </div>
@@ -416,11 +417,11 @@ export default function Home() {
                 while enabling people without university degrees to gain practical skills, continue their
                 education, and access work-and-study opportunities. Our mission is to create opportunities for 
                 everyone to learn, work, and build a successful future
-GOSAWA COMPANY LTD – Find Opportunities. Learn, Work, and Build Your Future Worldwide
+                GOSAWA COMPANY LTD – Find Opportunities. Learn, Work, and Build Your Future Worldwide
               </p>
 
             </div>
-
+    
            
 
           </div>
