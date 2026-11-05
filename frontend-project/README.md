@@ -10,6 +10,8 @@ GOSAWA LTD is a React and Vite application for connecting TVET students and job 
 
 The frontend adds `/api` to this URL automatically. For the live Render deployment, set `VITE_API_URL` to `https://gosawa-company-ltd.onrender.com` in the frontend service and set the frontend origin in the backend's `CLIENT_URL`. Redeploy the frontend after changing `VITE_API_URL`.
 
+The `public/_redirects` file rewrites frontend routes such as `/register` to `index.html` on Render Static Sites. Keep it in place so direct links and browser refreshes work.
+
 ## Checks
 
 - Run `npm run lint` to check the frontend source.
