@@ -35,11 +35,25 @@ try {
 
 const app = express();
 
-// FIXED: Replaced old dynamic whitelist block with an open configuration function
-// This ensures that credentials pass safely while matching incoming production origins dynamically
+// SECURITY WORKFLOW: Production and development domains for GOSAWA
+const allowedOrigins = [
+  "http://localhost:3000",                                // Local Next.js / React development
+  "http://localhost:5173",                                // Local Vite development
+  "https://gosawa-company-ltd2.onrender.com"              // YOUR PRODUCTION FRONTEND
+];
+
+// FIXED: Secure dynamic CORS configuration matching specific credentials requirements
 app.use(cors({
   origin: function (origin, callback) {
-    callback(null, true); // Dynamically approves all incoming origins securely
+    // Allow server-to-server requests (like Postman or internal tasks)
+    if (!origin) return callback(null, true);
+    
+    // Check if the incoming request origin is explicitly permitted
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, origin); // Reflect back the exact domain string safely
+    } else {
+      callback(new Error(`CORS policy blockage: Origin ${origin} unauthorized.`));
+    }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -48,6 +62,22 @@ app.use(cors({
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+
+// HELPER MIDDLEWARE: Standardizes outgoing authentication cookie behaviors for modern browsers
+app.use((req, res, next) => {
+  const originalCookie = res.cookie;
+  res.cookie = function (name, value, options = {}) {
+    const isProduction = process.env.NODE_ENV === "production" || req.secure || req.headers["x-forwarded-proto"] === "https";
+    const mergedOptions = {
+      httpOnly: true,
+      secure: isProduction, // Requires HTTPS layout strictly on live environments
+      sameSite: isProduction ? "none" : "lax", // Cross-site allowance on production, local allowance on dev
+      ...options
+    };
+    return originalCookie.call(this, name, value, mergedOptions);
+  };
+  next();
+});
 
 app.get("/", (req, res) => {
   res.json({
@@ -86,12 +116,12 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({
     success: false,
-    message: "Server error."
+    message: err.message || "Server error."
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`GOSAWA server running on http://localhost:${PORT}`);
+  console.log(`GOSAWA server running on port ${PORT}`);
 });
