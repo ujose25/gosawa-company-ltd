@@ -174,9 +174,11 @@ export default function Home() {
 
             <p className="mt-6 text-lg lg:text-xl text-slate-600 leading-8 max-w-xl">
 
-              GOSAWA COMPANY LTD connects TVET students and job seekers
-              with employers, internships, training and employment
-              opportunities across Rwanda.
+      GOSAWA COMPANY LTD is a platform that connects TVET students, graduates, 
+              and job seekers in Rwanda and abroad with employment opportunities, internships,
+              and training programs. Our mission is to help young people develop their skills, gain
+              practical experience, and build successful careers by connecting them with employers in Rwanda and 
+              internationally. We promote safe, legal, and reliable employment opportunities to help Rwandan youth build a brighter future.
 
             </p>
 
@@ -246,13 +248,13 @@ export default function Home() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
               <p className="relative text-cyan-300 font-bold">
-                Three accounts, one placement system
+                value proposition
               </p>
               <h3 className="relative text-2xl font-bold text-white mt-2">
-                Student · Employer · GOSAWA Admin
+             TO connect job seekes with the right employment opportunities through atrusted,accessible and technology-driven platform.
               </h3>
               <p className="relative text-slate-200 mt-2">
-                Students apply, employers review, GOSAWA confirms placements.
+              TO become aleading digital employment platform that transforms how people find job and how organizations find the right talent.
               </p>
             </div>
 
@@ -282,8 +284,9 @@ export default function Home() {
             </h2>
 
             <p className="text-slate-500 mt-5 text-lg">
-              GOSAWA creates a simple connection between students,
-              job seekers and employers.
+             GOSAWA connects TVET students, graduates, job seekers, and
+              employers to help people find jobs, internships, training, and 
+              opportunities to build a better future.
             </p>
 
           </div>
@@ -408,21 +411,26 @@ export default function Home() {
               </h2>
 
               <p className="text-slate-500 mt-3">
-                Discover sectors where GOSAWA students and job seekers
-                can find opportunities.
+              GOSAWA COMPANY LTD connects TVET students, graduates, university graduates, 
+                and job seekers with employment, internships, training, scholarships,
+                and study opportunities in Rwanda and abroad. It helps employers find qualified workers
+                while enabling people without university degrees to gain practical skills, continue their
+                education, and access work-and-study opportunities. Our mission is to create opportunities for 
+                everyone to learn, work, and build a successful future
+                GOSAWA COMPANY LTD – Find Opportunities. Learn, Work, and Build Your Future Worldwide
               </p>
 
             </div>
+    
+           
 
-            <Link
+          </div>
+ <Link
               to="/register"
               className="font-bold text-blue-600 hover:text-blue-800"
             >
               Create your account →
             </Link>
-
-          </div>
-
 
           {opportunitiesError && (
             <p role="alert" className="mt-6 text-red-700">{opportunitiesError}</p>
@@ -604,7 +612,7 @@ export default function Home() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  Burera, Northern Province, Rwanda
+                  Musanze, Northern Province, Rwanda
                 </p>
               </div>
 
@@ -614,7 +622,7 @@ export default function Home() {
                 </p>
 
                 <p className="font-bold mt-1">
-                  128 Burera
+                  128 Musanze
                 </p>
               </div>
 

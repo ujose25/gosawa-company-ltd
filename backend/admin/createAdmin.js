@@ -83,4 +83,5 @@ createAdmin()
 		console.error("Could not create admin account:", error.message);
 		process.exitCode = 1;
 	})
-	.finally(() => db.end());
+	.finally(() => db.end()); 
+
