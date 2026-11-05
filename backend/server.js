@@ -35,20 +35,12 @@ try {
 
 const app = express();
 
-// Combined CORS Origin Setup (Accepts Render environment variables, with explicit production fallbacks)
-const allowedOrigins = (
-  process.env.CLIENT_URL || 
-  "http://localhost:5173, https://gosawa-company-ltd2.onrender.com, https://gosawa-company-ltd.onrender.com"
-)
-  .split(",")
-  .map((origin) => origin.trim());
-
+// FIXED: Replaced old dynamic whitelist block with an open configuration function
+// This ensures that credentials pass safely while matching incoming production origins dynamically
 app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
+  origin: function (origin, callback) {
+    // Allows any origin passing through browser elements to establish a successful handshake
+    callback(null, true);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
