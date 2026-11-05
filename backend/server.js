@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const crypto = require("node:crypto");
@@ -35,7 +34,12 @@ try {
 }
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+
+// Combined CORS Origin Setup (Accepts Render environment variables, with explicit production fallbacks)
+const allowedOrigins = (
+  process.env.CLIENT_URL || 
+  "http://localhost:5173, https://gosawa-company-ltd2.onrender.com, https://gosawa-company-ltd.onrender.com"
+)
   .split(",")
   .map((origin) => origin.trim());
 
@@ -44,9 +48,11 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error("Origin is not allowed by CORS."));
+    return callback(new Error(`Origin ${origin} is not allowed by CORS.`));
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
 app.use(express.json({ limit: "1mb" }));
