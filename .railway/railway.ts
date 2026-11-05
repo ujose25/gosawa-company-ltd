@@ -63,7 +63,7 @@ export default defineRailway(() => {
     healthcheck: "/",
     domains: ["gosawa.org"],
     env: {
-      VITE_API_URL: "https://api.gosawa.org/api",
+      VITE_API_URL: "https://api.gosawa.org",
     },
   });
 

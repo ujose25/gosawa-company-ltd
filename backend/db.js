@@ -7,24 +7,32 @@ const path = require("path");
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Load the Aiven CA certificate in production.
+// Load a CA certificate when the production database requires TLS.
 let ssl;
 
 if (isProduction) {
-  const caPath =
-    process.env.DB_CA_PATH || path.join(__dirname, "ca.pem");
+  const configuredCaPath = process.env.DB_CA_PATH;
+  const caPath = configuredCaPath || path.join(__dirname, "ca.pem");
+  const ca = process.env.DB_CA_CERT;
 
-  if (!fs.existsSync(caPath)) {
+  if (ca) {
+    ssl = { ca, rejectUnauthorized: true };
+  } else if (fs.existsSync(caPath)) {
+    ssl = {
+      ca: fs.readFileSync(caPath, "utf8"),
+      rejectUnauthorized: true
+    };
+  } else if (configuredCaPath) {
     throw new Error(
-      `Aiven CA certificate not found at ${caPath}. ` +
-      "Please add ca.pem to the backend deployment."
+      `Database CA certificate not found at ${caPath}. ` +
+      "Provide a valid DB_CA_PATH or set DB_CA_CERT."
+    );
+  } else if ((process.env.DB_HOST || process.env.MYSQLHOST || "").includes("aivencloud.com")) {
+    throw new Error(
+      "Aiven production databases require their CA certificate. " +
+      "Set DB_CA_CERT or DB_CA_PATH."
     );
   }
-
-  ssl = {
-    ca: fs.readFileSync(caPath, "utf8"),
-    rejectUnauthorized: true
-  };
 }
 
 const db = mysql.createPool({

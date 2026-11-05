@@ -57,7 +57,13 @@ export default function EmployerDashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    void loadCompany();
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) void loadCompany();
+    });
+    return () => {
+      active = false;
+    };
   }, [loadCompany]);
 
   const createJob = async (event) => {

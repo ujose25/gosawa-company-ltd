@@ -35,12 +35,15 @@ try {
 
 const app = express();
 
-// SECURITY WORKFLOW: Production and development domains for GOSAWA
-const allowedOrigins = [
-  "http://localhost:3000",                                // Local Next.js / React development
-  "http://localhost:5173",                                // Local Vite development
-  "https://gosawa-company-ltd2.onrender.com"              // YOUR PRODUCTION FRONTEND
-];
+const allowedOrigins = new Set([
+  "http://localhost:3000",
+  "http://localhost:5173",
+  ...[process.env.CLIENT_URL, process.env.FRONTEND_URL]
+    .filter(Boolean)
+    .flatMap((origins) => origins.split(","))
+    .map((origin) => origin.trim().replace(/\/+$/, ""))
+    .filter(Boolean)
+]);
 
 // FIXED: Secure dynamic CORS configuration matching specific credentials requirements
 app.use(cors({
@@ -48,9 +51,8 @@ app.use(cors({
     // Allow server-to-server requests (like Postman or internal tasks)
     if (!origin) return callback(null, true);
     
-    // Check if the incoming request origin is explicitly permitted
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, origin); // Reflect back the exact domain string safely
+    if (allowedOrigins.has(origin)) {
+      callback(null, origin);
     } else {
       callback(new Error(`CORS policy blockage: Origin ${origin} unauthorized.`));
     }

@@ -2,9 +2,9 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
-const db = require("../db");
 
 const enabled = process.env.RUN_DB_INTEGRATION === "1";
+const db = enabled ? require("../db") : null;
 const accountTables = {
   seeker: "job_seekers",
   employer: "employers",

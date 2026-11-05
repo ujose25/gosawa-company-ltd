@@ -48,7 +48,13 @@ export default function Dashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    void loadDashboard();
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) void loadDashboard();
+    });
+    return () => {
+      active = false;
+    };
   }, [loadDashboard]);
 
   const submitRequest = async (event) => {
