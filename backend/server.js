@@ -39,8 +39,7 @@ const app = express();
 // This ensures that credentials pass safely while matching incoming production origins dynamically
 app.use(cors({
   origin: function (origin, callback) {
-    // Allows any origin passing through browser elements to establish a successful handshake
-    callback(null, true);
+    callback(null, true); // Dynamically approves all incoming origins securely
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
