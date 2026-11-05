@@ -45,7 +45,6 @@ const allowedOrigins = new Set([
     .filter(Boolean)
 ]);
 
-// FIXED: Secure dynamic CORS configuration matching specific credentials requirements
 app.use(cors({
   origin: function (origin, callback) {
     // Allow server-to-server requests (like Postman or internal tasks)
@@ -58,7 +57,7 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 

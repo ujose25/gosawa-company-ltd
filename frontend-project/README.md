@@ -5,10 +5,10 @@ GOSAWA LTD is a React and Vite application for connecting TVET students and job 
 ## Development
 
 1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env` and set `VITE_API_URL` to the backend origin (without `/api`). For local development, use `http://localhost:5000`; in production, use the deployed API origin such as `https://api.gosawa.org`.
+2. Copy `.env.example` to `.env` and set `VITE_API_URL` to the backend origin (without `/api`). For local development, use `http://localhost:5000`; the production API is `https://gosawa-company-ltd.onrender.com`.
 3. Start the development server with `npm run dev`.
 
-The frontend adds `/api` to this URL automatically. For a live deployment, configure the same origin as `VITE_API_URL` in the frontend hosting environment and add the frontend origin to the backend's `CLIENT_URL`.
+The frontend adds `/api` to this URL automatically. For the live Render deployment, set `VITE_API_URL` to `https://gosawa-company-ltd.onrender.com` in the frontend service and set the frontend origin in the backend's `CLIENT_URL`. Redeploy the frontend after changing `VITE_API_URL`.
 
 ## Checks
 

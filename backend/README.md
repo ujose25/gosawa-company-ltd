@@ -21,9 +21,59 @@ Set `ADMIN_EMAIL`, `EMAIL_USER`, and `EMAIL_PASS` in `.env`, then run `npm run c
 
 Run backend unit tests with `npm test`.
 
+## Deploy to Render with Aiven MySQL
+
+The frontend and API are separate Render services:
+
+- Frontend: `https://gosawa-company-ltd2.onrender.com`
+- API: `https://gosawa-company-ltd.onrender.com`
+
+### API web service
+
+Create or update a Render **Web Service** connected to this repository:
+
+1. Set the root directory to `backend`.
+2. Set the build command to `npm ci` and the start command to `npm start`.
+3. Set the health check path to `/health`.
+4. Add these environment variables in Render. Use the current values from Aiven's service connection information for the database variables; never commit them to the repository.
+
+| Variable | Value |
+| --- | --- |
+| `NODE_ENV` | `production` |
+| `CLIENT_URL` | `https://gosawa-company-ltd2.onrender.com` |
+| `FRONTEND_URL` | `https://gosawa-company-ltd2.onrender.com` |
+| `COOKIE_SAME_SITE` | `none` |
+| `JWT_SECRET` | A new, randomly generated secret with at least 32 characters |
+| `DB_HOST` | Aiven MySQL host |
+| `DB_PORT` | Aiven MySQL port |
+| `DB_USER` | Aiven MySQL user |
+| `DB_PASSWORD` | Aiven MySQL password |
+| `DB_NAME` | Aiven MySQL database name |
+
+`backend/ca.pem` is included in this repository and is loaded automatically for production connections. If using a different Aiven CA, set `DB_CA_CERT` to the PEM certificate contents or set `DB_CA_PATH` to its deployed file path.
+
+After setting the database variables, run `npm run migrate` once from the API service's shell (or another trusted environment with the same database variables) to create/update the schema. Do not run `npm run create-admin` on every deployment; it is a one-time setup and requires `ADMIN_EMAIL`, `EMAIL_USER`, and `EMAIL_PASS`.
+
+Password reset and admin setup emails are optional. To enable them, configure `EMAIL_USER`, `EMAIL_PASS` (use a Gmail App Password, not your normal account password), and `SMTP_HOST`, `SMTP_PORT`, and `SMTP_SECURE` in Render.
+
+### Frontend static site
+
+Create or update a Render **Static Site** connected to the same repository:
+
+1. Set the root directory to `frontend-project`.
+2. Set the build command to `npm ci && npm run build`.
+3. Set the publish directory to `dist`.
+4. Add `VITE_API_URL=https://gosawa-company-ltd.onrender.com`.
+5. Add a rewrite from `/*` to `/index.html` with status `200` so client-side routes work when opened directly.
+6. Deploy the site again after changing the build environment variable.
+
+### Verify the deployment
+
+Open `https://gosawa-company-ltd.onrender.com/health`. A healthy service returns `{"success":true,"status":"healthy"}`. Then check `https://gosawa-company-ltd.onrender.com/api/companies` and `https://gosawa-company-ltd.onrender.com/api/seeker/opportunities`. If health returns `503`, check the API service logs, Aiven connection details, and CA certificate. If the browser reports a CORS error, confirm `CLIENT_URL` matches the frontend URL exactly, including `https://` and without a trailing slash.
+
 ## API endpoints
 
-The API is mounted at `/api`. When deployed with the Railway configuration in this repository, the base URL is `https://api.gosawa.org`.
+The API is mounted at `/api`. On Render, the base URL is `https://gosawa-company-ltd.onrender.com`.
 
 | Method | Path | Access |
 | --- | --- | --- |
@@ -54,4 +104,4 @@ The API is mounted at `/api`. When deployed with the Railway configuration in th
 | GET | `/api/admin/applications` | Admin session |
 | PATCH | `/api/admin/applications/:id/status` | Admin session |
 
-Open `https://api.gosawa.org/health` in a browser to check the live API and database. Test write or login endpoints with an API client such as Postman; authenticated endpoints use the `gosawa_session` cookie created by login.
+Open `https://gosawa-company-ltd.onrender.com/health` in a browser to check the live API and database. Test write or login endpoints with an API client such as Postman; authenticated endpoints use the `gosawa_session` cookie created by login.

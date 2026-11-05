@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const configuredApiUrl =
-  import.meta.env.VITE_API_URL || "https://api.gosawa.org";
+  import.meta.env.VITE_API_URL || "https://gosawa-company-ltd.onrender.com";
 const API_BASE_URL = configuredApiUrl.replace(/\/+$/, "").replace(/\/api$/i, "");
 
 const api = axios.create({
