@@ -1,3 +1,4 @@
+
 require("dotenv").config();
 
 const crypto = require("node:crypto");
@@ -8,6 +9,7 @@ const db = require("./db");
 
 if (!process.env.JWT_SECRET) {
   const secretSource = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD;
+
   if (secretSource) {
     process.env.JWT_SECRET = crypto
       .createHash("sha256")
@@ -25,8 +27,9 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
   throw new Error("JWT_SECRET must be set to at least 32 characters.");
 }
 
-// Komeza iyi route niba file ya companies.js igihari.
+// Optional companies route
 let companyRoutes;
+
 try {
   companyRoutes = require("./routes/companies");
 } catch (error) {
@@ -35,9 +38,15 @@ try {
 
 const app = express();
 
+// Allowed frontend domains
 const allowedOrigins = new Set([
   "http://localhost:3000",
   "http://localhost:5173",
+
+  // Production frontend domains
+  "https://gosawa.rw",
+  "https://www.gosawa.rw",
+
   ...[process.env.CLIENT_URL, process.env.FRONTEND_URL]
     .filter(Boolean)
     .flatMap((origins) => origins.split(","))
@@ -45,41 +54,69 @@ const allowedOrigins = new Set([
     .filter(Boolean)
 ]);
 
+// CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow server-to-server requests (like Postman or internal tasks)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.has(origin)) {
-      callback(null, origin);
-    } else {
-      callback(new Error(`CORS policy blockage: Origin ${origin} unauthorized.`));
+    // Allow requests without an origin (Postman/server-to-server)
+    if (!origin) {
+      return callback(null, true);
     }
+
+    if (allowedOrigins.has(origin)) {
+      return callback(null, origin);
+    }
+
+    callback(
+      new Error(`CORS policy blockage: Origin ${origin} unauthorized.`)
+    );
   },
+
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
+
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS"
+  ],
+
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With"
+  ]
 }));
 
+// Middleware
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
-// HELPER MIDDLEWARE: Standardizes outgoing authentication cookie behaviors for modern browsers
+// Authentication cookie configuration
 app.use((req, res, next) => {
   const originalCookie = res.cookie;
+
   res.cookie = function (name, value, options = {}) {
-    const isProduction = process.env.NODE_ENV === "production" || req.secure || req.headers["x-forwarded-proto"] === "https";
+    const isProduction =
+      process.env.NODE_ENV === "production" ||
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https";
+
     const mergedOptions = {
       httpOnly: true,
-      secure: isProduction, // Requires HTTPS layout strictly on live environments
-      sameSite: isProduction ? "none" : "lax", // Cross-site allowance on production, local allowance on dev
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       ...options
     };
+
     return originalCookie.call(this, name, value, mergedOptions);
   };
+
   next();
 });
 
+// Backend home route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -87,25 +124,37 @@ app.get("/", (req, res) => {
   });
 });
 
+// Database health check
 app.get("/health", async (req, res) => {
   try {
     await db.query("SELECT 1");
-    return res.json({ success: true, status: "healthy" });
+
+    return res.json({
+      success: true,
+      status: "healthy"
+    });
   } catch (error) {
     console.error("Health check failed:", error.message);
-    return res.status(503).json({ success: false, status: "unavailable" });
+
+    return res.status(503).json({
+      success: false,
+      status: "unavailable"
+    });
   }
 });
 
+// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/seeker", seekerRoutes);
 app.use("/api/employer", employerRoutes);
 app.use("/api/admin", adminRoutes);
 
+// Optional companies API
 if (companyRoutes) {
   app.use("/api/companies", companyRoutes);
 }
 
+// Handle unknown routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -113,14 +162,17 @@ app.use((req, res) => {
   });
 });
 
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err);
+
   res.status(500).json({
     success: false,
     message: err.message || "Server error."
   });
 });
 
+// Start server
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
