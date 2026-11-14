@@ -652,8 +652,12 @@ export default function Home() {
 
       </footer>
 
+      
+    
+
+      {/* WHATSAPP FLOATING BUTTON */}
       <a
-        href="https://wa.me/250781043264?text=Hello%20GOSAWA%20COMPANY%20LTD%2C%20I%20would%20like%20to%20know%20more%20about%20your%20services."
+        href="https://wa.me/250781043264?text=Hello%20GOSAWA%20COMPANY%20LTD"
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-4 rounded-full shadow-xl transition-all hover:-translate-y-1"
@@ -663,10 +667,9 @@ export default function Home() {
         <span className="font-bold">Chat with us</span>
       </a>
 
- 
-  );
-}
-
     </div>
   );
 }
+
+ 
+
