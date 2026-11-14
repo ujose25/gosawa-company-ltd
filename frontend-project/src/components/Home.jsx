@@ -12,7 +12,7 @@ const services = [
   },
   {
     icon: "🎓",
-    title: "TVET Internship",
+    title: "TVET Internships",
     text: "Help TVET students find practical internship and work-learning opportunities.",
   },
   {
@@ -652,9 +652,6 @@ export default function Home() {
 
       </footer>
 
-      </footer>
-
-      {/* WHATSAPP FLOATING BUTTON */}
       <a
         href="https://wa.me/250781043264?text=Hello%20GOSAWA%20COMPANY%20LTD%2C%20I%20would%20like%20to%20know%20more%20about%20your%20services."
         target="_blank"
@@ -666,7 +663,7 @@ export default function Home() {
         <span className="font-bold">Chat with us</span>
       </a>
 
-    </div>
+ 
   );
 }
 
