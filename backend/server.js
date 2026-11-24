@@ -46,6 +46,8 @@ const allowedOrigins = new Set([
   // Production frontend domains
   "https://gosawa.rw",
   "https://www.gosawa.rw",
+  "https://gosawa-company-ltd2.onrender.com",
+  "https://gosawa-company-ltd.onrender.com",
 
   ...[process.env.CLIENT_URL, process.env.FRONTEND_URL]
     .filter(Boolean)
