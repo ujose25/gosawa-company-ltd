@@ -7,27 +7,36 @@ const path = require("path");
 
 const isProduction = process.env.NODE_ENV === "production";
 
-// Load a CA certificate when the production database requires TLS.
+// Load TLS settings for hosted MySQL-compatible databases such as TiDB Cloud.
 let ssl;
+const ca = process.env.DB_CA_CERT;
+const configuredCaPath = process.env.DB_CA_PATH;
+const caPath = configuredCaPath || path.join(__dirname, "ca.pem");
+const sslEnabled = String(process.env.DB_SSL || "").toLowerCase() === "true";
+const dbHost = process.env.DB_HOST || process.env.MYSQLHOST || "localhost";
 
-if (isProduction) {
-  const configuredCaPath = process.env.DB_CA_PATH;
-  const caPath = configuredCaPath || path.join(__dirname, "ca.pem");
-  const ca = process.env.DB_CA_CERT;
-
+if (isProduction || sslEnabled) {
   if (ca) {
     ssl = { ca, rejectUnauthorized: true };
-  } else if (fs.existsSync(caPath)) {
+  } else if (configuredCaPath) {
+    if (!fs.existsSync(caPath)) {
+      throw new Error(
+        `Database CA certificate not found at ${caPath}. ` +
+        "Provide a valid DB_CA_PATH or set DB_CA_CERT."
+      );
+    }
     ssl = {
       ca: fs.readFileSync(caPath, "utf8"),
       rejectUnauthorized: true
     };
-  } else if (configuredCaPath) {
-    throw new Error(
-      `Database CA certificate not found at ${caPath}. ` +
-      "Provide a valid DB_CA_PATH or set DB_CA_CERT."
-    );
-  } else if ((process.env.DB_HOST || process.env.MYSQLHOST || "").includes("aivencloud.com")) {
+  } else if (sslEnabled || dbHost.includes("tidbcloud.com")) {
+    ssl = { rejectUnauthorized: true };
+  } else if (isProduction && fs.existsSync(caPath)) {
+    ssl = {
+      ca: fs.readFileSync(caPath, "utf8"),
+      rejectUnauthorized: true
+    };
+  } else if (dbHost.includes("aivencloud.com")) {
     throw new Error(
       "Aiven production databases require their CA certificate. " +
       "Set DB_CA_CERT or DB_CA_PATH."

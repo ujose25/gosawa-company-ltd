@@ -11,6 +11,21 @@
 
 For an Aiven production database, provide its CA certificate using `DB_CA_CERT` or `DB_CA_PATH`. Railway's private MySQL service does not require the ignored local `ca.pem` file.
 
+### TiDB Cloud
+
+TiDB Cloud uses MySQL-compatible credentials and TLS. Keep the live `.env` unchanged while testing locally; copy the `.env.example` values and add TiDB's connection values:
+
+```env
+DB_HOST=<cluster-host>.tidbcloud.com
+DB_PORT=4000
+DB_USER=<database-user>
+DB_PASSWORD=<database-password>
+DB_NAME=<database-name>
+DB_SSL=true
+```
+
+Optionally set `DB_CA_CERT` to PEM certificate contents or `DB_CA_PATH` to a certificate file. Never commit real TiDB credentials. Create a separate database or branch for testing, run `npm run migrate`, then run `npm start` and open `/health`.
+
 Set `FRONTEND_URL` to the public frontend origin. SMTP settings are used only for password-reset emails; registration does not send email. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `EMAIL_USER`, and `EMAIL_PASS` on the host to enable account recovery.
 
 ## Admin account
@@ -50,7 +65,7 @@ Create or update a Render **Web Service** connected to this repository:
 | `DB_PASSWORD` | Aiven MySQL password |
 | `DB_NAME` | Aiven MySQL database name |
 
-`backend/ca.pem` is included in this repository and is loaded automatically for production connections. If using a different Aiven CA, set `DB_CA_CERT` to the PEM certificate contents or set `DB_CA_PATH` to its deployed file path.
+Keep CA certificates out of Git. For Aiven or TiDB production connections, set `DB_CA_CERT` to the PEM certificate contents or set `DB_CA_PATH` to a deployed certificate file.
 
 After setting the database variables, run `npm run migrate` once from the API service's shell (or another trusted environment with the same database variables) to create/update the schema. Do not run `npm run create-admin` on every deployment; it is a one-time setup and requires `ADMIN_EMAIL`, `EMAIL_USER`, and `EMAIL_PASS`.
 
