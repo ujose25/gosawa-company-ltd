@@ -37,6 +37,7 @@ try {
 }
 
 const app = express();
+app.set("trust proxy", 1);
 
 // Allowed frontend domains
 const allowedOrigins = new Set([
