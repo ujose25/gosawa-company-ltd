@@ -363,7 +363,7 @@ router.post("/login", authLimiter, async (req, res) => {
     if (users.length === 0) {
       return res.status(401).json({
         success: false,
-        message: "Email or password is incorrect.",
+        message: "Invalid credentials.",
       });
     }
 
@@ -377,7 +377,7 @@ router.post("/login", authLimiter, async (req, res) => {
     if (!passwordHash || !passwordMatches) {
       return res.status(401).json({
         success: false,
-        message: "Email or password is incorrect.",
+        message: "Invalid credentials.",
       });
     }
 

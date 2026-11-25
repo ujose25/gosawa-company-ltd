@@ -127,12 +127,14 @@ export default function Login() {
           className="mb-4 w-full rounded-xl border p-3"
         />
 
-        <Link
-          to={`/forgot-password?role=${form.role}`}
-          className="mb-4 block text-right text-sm font-semibold text-blue-700"
-        >
-          Forgot password?
-        </Link>
+        {form.role !== "admin" && (
+          <Link
+            to={`/forgot-password?role=${form.role}`}
+            className="mb-4 block text-right text-sm font-semibold text-blue-700"
+          >
+            Forgot password?
+          </Link>
+        )}
 
         <button
           type="submit"
